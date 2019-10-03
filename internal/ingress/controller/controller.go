@@ -25,6 +25,7 @@ import (
 
 	"github.com/mitchellh/hashstructure"
 	apiv1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1beta1"
 	"k8s.io/apimachinery/pkg/util/intstr"
 	"k8s.io/apimachinery/pkg/util/sets"
@@ -70,6 +71,7 @@ type Configuration struct {
 	// +optional
 	PublishService       string
 	PublishStatusAddress string
+	PublishIngress       string
 
 	UpdateStatus           bool
 	UseNodeInternalIP      bool
@@ -106,6 +108,16 @@ func (n NGINXController) GetPublishService() *apiv1.Service {
 	}
 
 	return s
+}
+
+// GetPublishIngress returns the Ingress used to set the load-balancer status of Ingresses.
+func (n NGINXController) GetPublishIngress() *extensionsv1beta1.Ingress {
+	i, err := n.store.GetIngressResource(n.cfg.PublishIngress)
+	if err != nil {
+		return nil
+	}
+
+	return i
 }
 
 // syncIngress collects all the pieces required to assemble the NGINX

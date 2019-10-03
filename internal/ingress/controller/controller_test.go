@@ -32,6 +32,7 @@ import (
 	"github.com/eapache/channels"
 	corev1 "k8s.io/api/core/v1"
 	v1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/util/intstr"
@@ -68,6 +69,10 @@ func (fakeIngressStore) GetSecret(key string) (*corev1.Secret, error) {
 }
 
 func (fakeIngressStore) GetService(key string) (*corev1.Service, error) {
+	return nil, fmt.Errorf("test error")
+}
+
+func (fakeIngressStore) GetIngressResource(key string) (*extensionsv1beta1.Ingress, error) {
 	return nil, fmt.Errorf("test error")
 }
 

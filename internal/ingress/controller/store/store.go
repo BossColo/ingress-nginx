@@ -74,6 +74,9 @@ type Storer interface {
 	// GetService returns the Service matching key.
 	GetService(key string) (*corev1.Service, error)
 
+	// GetService returns the Service matching key.
+	GetIngressResource(key string) (*extensionsv1beta1.Ingress, error)
+
 	// GetServiceEndpoints returns the Endpoints of a Service matching key.
 	GetServiceEndpoints(key string) (*corev1.Endpoints, error)
 
@@ -135,6 +138,7 @@ type Informer struct {
 type Lister struct {
 	Ingress               IngressLister
 	Service               ServiceLister
+	IngressResource       IngressResourceLister
 	Endpoint              EndpointLister
 	Secret                SecretLister
 	ConfigMap             ConfigMapLister
@@ -769,6 +773,11 @@ func (s *k8sStore) ListLocalSSLCerts() []*ingress.SSLCert {
 // GetService returns the Service matching key.
 func (s *k8sStore) GetService(key string) (*corev1.Service, error) {
 	return s.listers.Service.ByKey(key)
+}
+
+// GetIngressResource returns the Ingress matching key.
+func (s *k8sStore) GetIngressResource(key string) (*extensionsv1beta1.Ingress, error) {
+	return s.listers.IngressResource.ByKey(key)
 }
 
 // getIngress returns the Ingress matching key.

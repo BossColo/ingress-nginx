@@ -66,6 +66,12 @@ Takes the form "namespace/name". When used together with update-status, the
 controller mirrors the address of this service's endpoints to the load-balancer
 status of all Ingress objects it satisfies.`)
 
+		publishIng = flags.String("publish-ingress", "",
+			`Ingress fronting the Ingress controller.
+		Takes the form "namespace/name". When used together with update-status, the
+		controller mirrors the address of this service's endpoints to the load-balancer
+		status of all Ingress objects it satisfies.`)
+
 		tcpConfigMapName = flags.String("tcp-services-configmap", "",
 			`Name of the ConfigMap containing the definition of the TCP services to expose.
 The key in the map indicates the external port to be used. The value is a
@@ -243,8 +249,8 @@ Takes the form "<host>:port". If not provided, no admission controller is starte
 		klog.Warningf("SSL certificate chain completion is disabled (--enable-ssl-chain-completion=false)")
 	}
 
-	if *publishSvc != "" && *publishStatusAddress != "" {
-		return false, nil, fmt.Errorf("flags --publish-service and --publish-status-address are mutually exclusive")
+	if *publishSvc != "" && *publishIng != "" && *publishStatusAddress != "" {
+		return false, nil, fmt.Errorf("flags --publish-service, --ingress-service, and --publish-status-address are mutually exclusive")
 	}
 
 	nginx.HealthPath = *defHealthzURL
@@ -273,6 +279,7 @@ Takes the form "<host>:port". If not provided, no admission controller is starte
 		DefaultSSLCertificate:  *defSSLCertificate,
 		PublishService:         *publishSvc,
 		PublishStatusAddress:   *publishStatusAddress,
+		PublishIngress:         *publishIng,
 		UpdateStatusOnShutdown: *updateStatusOnShutdown,
 		UseNodeInternalIP:      *useNodeInternalIP,
 		SyncRateLimit:          *syncRateLimit,

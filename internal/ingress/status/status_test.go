@@ -23,6 +23,7 @@ import (
 	"time"
 
 	apiv1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 	networking "k8s.io/api/networking/v1beta1"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	testclient "k8s.io/client-go/kubernetes/fake"
@@ -503,6 +504,85 @@ func TestRunningAddresessWithPublishService(t *testing.T) {
 		t.Run(title, func(t *testing.T) {
 
 			fk := buildStatusSync()
+			fk.Config.Client = tc.fakeClient
+
+			ra, err := fk.runningAddresses()
+			if err != nil {
+				if tc.errExpected {
+					return
+				}
+
+				t.Fatalf("%v: unexpected error obtaining running address/es: %v", title, err)
+			}
+
+			if ra == nil {
+				t.Fatalf("returned nil but expected valid []string")
+			}
+
+			if !reflect.DeepEqual(tc.expected, ra) {
+				t.Errorf("returned %v but expected %v", ra, tc.expected)
+			}
+		})
+	}
+}
+
+func TestRunningAddresessWithPublishIngress(t *testing.T) {
+	testCases := map[string]struct {
+		fakeClient  *testclient.Clientset
+		expected    []string
+		errExpected bool
+	}{
+		"Ingress": {
+			testclient.NewSimpleClientset(
+				&extensionsv1beta1.IngressList{Items: []extensionsv1beta1.Ingress{
+					{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "foo",
+							Namespace: apiv1.NamespaceDefault,
+						},
+						Spec: extensionsv1beta1.IngressSpec{},
+						Status: extensionsv1beta1.IngressStatus{
+							LoadBalancer: apiv1.LoadBalancerStatus{
+								Ingress: []apiv1.LoadBalancerIngress{
+									{
+										IP: "10.0.0.1",
+									},
+									{
+										IP:       "",
+										Hostname: "foo",
+									},
+								},
+							},
+						},
+					},
+				},
+				},
+			),
+			[]string{"10.0.0.1", "foo"},
+			false,
+		},
+		"invalid Ingress": {
+			testclient.NewSimpleClientset(
+				&extensionsv1beta1.IngressList{Items: []extensionsv1beta1.Ingress{
+					{
+						ObjectMeta: metav1.ObjectMeta{
+							Name:      "foo",
+							Namespace: apiv1.NamespaceDefault,
+						},
+					},
+				},
+				},
+			),
+			nil,
+			true,
+		},
+	}
+
+	for title, tc := range testCases {
+		t.Run(title, func(t *testing.T) {
+
+			fk := buildStatusSync()
+			fk.PublishIngress = apiv1.NamespaceDefault + "/" + "foo"
 			fk.Config.Client = tc.fakeClient
 
 			ra, err := fk.runningAddresses()

@@ -143,6 +143,7 @@ func NewNGINXController(config *Configuration, mc metric.Collector) *NGINXContro
 			Client:                 config.Client,
 			PublishService:         config.PublishService,
 			PublishStatusAddress:   config.PublishStatusAddress,
+			PublishIngress:         config.PublishIngress,
 			IngressLister:          n.store,
 			UpdateStatusOnShutdown: config.UpdateStatusOnShutdown,
 			UseNodeInternalIP:      config.UseNodeInternalIP,
@@ -602,6 +603,7 @@ func (n NGINXController) generateTemplate(cfg ngx_config.Configuration, ingressC
 		IsSSLPassthroughEnabled:  n.cfg.EnableSSLPassthrough,
 		ListenPorts:              n.cfg.ListenPorts,
 		PublishService:           n.GetPublishService(),
+		PublishIngress:           n.GetPublishIngress(),
 		EnableMetrics:            n.cfg.EnableMetrics,
 
 		HealthzURI: nginx.HealthPath,

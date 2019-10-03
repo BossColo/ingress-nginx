@@ -64,6 +64,8 @@ type Config struct {
 
 	PublishStatusAddress string
 
+	PublishIngress string
+
 	UpdateStatusOnShutdown bool
 
 	UseNodeInternalIP bool
@@ -177,6 +179,10 @@ func (s *statusSync) runningAddresses() ([]string, error) {
 
 	if s.PublishService != "" {
 		return statusAddressFromService(s.PublishService, s.Client)
+	}
+
+	if s.PublishIngress != "" {
+		return statusAddressFromIngress(s.PublishIngress, s.Client)
 	}
 
 	// get information about all the pods running the ingress controller
@@ -355,4 +361,23 @@ func statusAddressFromService(service string, kubeClient clientset.Interface) ([
 	}
 
 	return nil, fmt.Errorf("unable to extract IP address/es from service %v", service)
+}
+
+func statusAddressFromIngress(ingress string, kubeClient clientset.Interface) ([]string, error) {
+	ns, name, _ := k8s.ParseNameNS(ingress)
+	ing, err := kubeClient.ExtensionsV1beta1().Ingresses(ns).Get(name, metav1.GetOptions{})
+	if err != nil {
+		return nil, err
+	}
+
+	addresses := []string{}
+	for _, ip := range ing.Status.LoadBalancer.Ingress {
+		if ip.IP == "" {
+			addresses = append(addresses, ip.Hostname)
+		} else {
+			addresses = append(addresses, ip.IP)
+		}
+	}
+
+	return addresses, nil
 }

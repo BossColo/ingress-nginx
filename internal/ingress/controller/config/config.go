@@ -23,6 +23,7 @@ import (
 	"k8s.io/klog"
 
 	apiv1 "k8s.io/api/core/v1"
+	extensionsv1beta1 "k8s.io/api/extensions/v1beta1"
 
 	"k8s.io/ingress-nginx/internal/ingress"
 	"k8s.io/ingress-nginx/internal/ingress/defaults"
@@ -800,6 +801,7 @@ type TemplateConfig struct {
 	RedirectServers          interface{}
 	ListenPorts              *ListenPorts
 	PublishService           *apiv1.Service
+	PublishIngress           *extensionsv1beta1.Ingress
 	EnableMetrics            bool
 
 	PID        string
