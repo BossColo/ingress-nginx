@@ -182,7 +182,7 @@ func (s *statusSync) runningAddresses() ([]string, error) {
 	}
 
 	if s.PublishIngress != "" {
-		return statusAddressFromIngress(s.PublishIngress, s.Client)
+		return statusAddressFromIngressResource(s.PublishIngress, s.Client)
 	}
 
 	// get information about all the pods running the ingress controller
@@ -363,7 +363,7 @@ func statusAddressFromService(service string, kubeClient clientset.Interface) ([
 	return nil, fmt.Errorf("unable to extract IP address/es from service %v", service)
 }
 
-func statusAddressFromIngress(ingress string, kubeClient clientset.Interface) ([]string, error) {
+func statusAddressFromIngressResource(ingress string, kubeClient clientset.Interface) ([]string, error) {
 	ns, name, _ := k8s.ParseNameNS(ingress)
 	ing, err := kubeClient.ExtensionsV1beta1().Ingresses(ns).Get(name, metav1.GetOptions{})
 	if err != nil {
@@ -379,5 +379,9 @@ func statusAddressFromIngress(ingress string, kubeClient clientset.Interface) ([
 		}
 	}
 
-	return addresses, nil
+	if len(addresses) == 0 {
+		return nil, fmt.Errorf("unable to extract IP address/es from ingress resource %v", ingress)
+	} else {
+		return addresses, nil
+	}
 }

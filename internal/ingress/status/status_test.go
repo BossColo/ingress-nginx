@@ -582,6 +582,7 @@ func TestRunningAddresessWithPublishIngress(t *testing.T) {
 		t.Run(title, func(t *testing.T) {
 
 			fk := buildStatusSync()
+			fk.PublishService = ""
 			fk.PublishIngress = apiv1.NamespaceDefault + "/" + "foo"
 			fk.Config.Client = tc.fakeClient
 
